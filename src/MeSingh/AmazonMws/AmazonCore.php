@@ -358,8 +358,7 @@ abstract class AmazonCore{
 
     public function setConfig($config = null)
     {
-        if( is_null($config))
-            $config = Config::get('services.amazon_mws');
+        $config = Config::get('services.amazon_mws');
 
         if(array_key_exists('seller_id', $config))
             $this->options['SellerId'] = $config['seller_id'];
@@ -370,6 +369,16 @@ abstract class AmazonCore{
             $this->options['AWSAccessKeyId'] = $config['access_key'];
         else
             $this->log("Access Key ID is missing!",'Warning');
+
+        if(array_key_exists('secret_key', $config))
+            $this->options['SecretKey'] = $config['secret_key'];
+        else
+            $this->log("Secret Key is missing!",'Warning');
+
+        if(array_key_exists('marketplace_id', $config))
+            $this->options['MarketplaceId'] = $config['marketplace_id'];
+        else
+            $this->log("Marketplace ID is missing",'Urgent');
 
         // Overwrite Amazon service url if specified
         if(array_key_exists('service_url', $config))
@@ -496,7 +505,7 @@ abstract class AmazonCore{
      */
     protected function genQuery(){
 
-        $secretKey = $this->mwsconfig['secret_key'];
+        $secretKey = $this->options['SecretKey'];
 
         unset($this->options['Signature']);
         $this->options['Timestamp'] = $this->genTime();

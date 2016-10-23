@@ -1,6 +1,7 @@
 <?php namespace MeSingh\AmazonMws;
 
 use MeSingh\AmazonMws\AmazonCore;
+use Config;
 
 /**
  * Copyright 2013 CPI Group, LLC
@@ -45,24 +46,19 @@ abstract class AmazonProductsCore extends AmazonCore{
      */
     public function __construct($s, $mock = false, $m = null, $config = null){
         parent::__construct($s, $mock, $m, $config);
+
         include($this->env);
-        if (file_exists($this->config)){
-            include($this->config);
-        } else {
-            throw new Exception('Config file does not exist!');
-        }
+        $config = Config::get('services.amazon_mws');
 
         if(isset($AMAZON_VERSION_PRODUCTS)){
             $this->urlbranch = 'Products/'.$AMAZON_VERSION_PRODUCTS;
             $this->options['Version'] = $AMAZON_VERSION_PRODUCTS;
         }
 
-
-        if(isset($store[$s]) && array_key_exists('marketplaceId', $store[$s])){
-            $this->options['MarketplaceId'] = $store[$s]['marketplaceId'];
-        } else {
+        if(array_key_exists('marketplace_id', $config))
+            $this->options['MarketplaceId'] = $config['marketplace_id'];
+        else
             $this->log("Marketplace ID is missing",'Urgent');
-        }
 
         if(isset($THROTTLE_LIMIT_PRODUCT)) {
             $this->throttleLimit = $THROTTLE_LIMIT_PRODUCT;
@@ -91,11 +87,11 @@ abstract class AmazonProductsCore extends AmazonCore{
             }
             if (isset($x->Products)){
                 foreach($x->Products->children() as $z){
-                    $this->productList[$this->index] = new AmazonProduct($this->storeName, $z, $this->mockMode, $this->mockFiles,$this->config);
+                    $this->productList[$this->index] = new AmazonProduct($this->mwsconfig, $z, $this->mockMode, $this->mockFiles,$this->config);
                     $this->index++;
                 }
             } else if ($x->getName() == 'GetProductCategoriesForSKUResult' || $x->getName() == 'GetProductCategoriesForASINResult'){
-                $this->productList[$this->index] = new AmazonProduct($this->storeName, $x, $this->mockMode, $this->mockFiles,$this->config);
+                $this->productList[$this->index] = new AmazonProduct($this->mwsconfig, $x, $this->mockMode, $this->mockFiles,$this->config);
                 $this->index++;
             } else {
                 foreach($x->children() as $z){
@@ -107,7 +103,7 @@ abstract class AmazonProductsCore extends AmazonCore{
                         $this->productList[$z->getName()] = (string)$z;
                         $this->log("Special case: ".$z->getName(),'Warning');
                     } else {
-                        $this->productList[$this->index] = new AmazonProduct($this->storeName, $z, $this->mockMode, $this->mockFiles,$this->config);
+                        $this->productList[$this->index] = new AmazonProduct($this->mwsconfig, $z, $this->mockMode, $this->mockFiles,$this->config);
                         $this->index++;
                     }
                 }

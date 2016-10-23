@@ -43,7 +43,7 @@ class AmazonProductInfo extends AmazonProductsCore{
      * @param array|string $m [optional] <p>The files (or file) to use in Mock Mode.</p>
      * @param string $config [optional] <p>An alternate config file to set. Used for testing.</p>
      */
-    public function __construct($s, $mock = false, $m = null, $config = null){
+    public function __construct($s = null, $mock = false, $m = null, $config = null){
         parent::__construct($s, $mock, $m, $config);
     }
 
@@ -60,6 +60,7 @@ class AmazonProductInfo extends AmazonProductsCore{
         if (is_string($s)){
             $this->resetASINs();
             $this->resetSKUs();
+            $this->options['SellerSKU'] = $s;
             $this->options['SellerSKUList.SellerSKU.1'] = $s;
         } else if (is_array($s)){
             $this->resetASINs();
@@ -81,6 +82,7 @@ class AmazonProductInfo extends AmazonProductsCore{
      * without replacing them, so this method is not public.
      */
     private function resetSKUs(){
+        unset($this->options['SellerSKU']);
         foreach($this->options as $op=>$junk){
             if(preg_match("#SellerSKUList#",$op)){
                 unset($this->options[$op]);
